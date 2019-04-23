@@ -2,11 +2,11 @@
  * Baobab
  *
  * Homepage: https://github.com/Yomguithereal/baobab
- * Version: 2.4.3
+ * Version: 2.4.6
  * Author: Yomguithereal (Guillaume Plique)
  * License: MIT
  */
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Baobab = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Baobab = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 (function() {
   'use strict';
 
@@ -487,7 +487,10 @@
             this._handlersComplex :
             this._handlersAll;
 
-        parent.splice(parent.indexOf(onces[j]), 1);
+        const onceIndex = parent.indexOf(onces[j]);
+        if (onceIndex !== -1) {
+          parent.splice(onceIndex, 1);
+        }
       }
     }
 
@@ -545,7 +548,7 @@
   /**
    * Version:
    */
-  Emitter.version = '3.1.1';
+  Emitter.version = '3.1.2';
 
 
   // Export:
@@ -993,9 +996,13 @@ var Baobab = (function (_Emitter) {
     }
 
     // Updating asynchronously
-    if (!this._future) this._future = setTimeout(function () {
-      return _this3.commit();
-    }, 0);
+    if (!this._future) {
+      if (this.schedule) this._future = this.schedule(function () {
+        return _this3.commit();
+      });else this._future = setTimeout(function () {
+        return _this3.commit();
+      }, 0);
+    }
 
     // Finally returning the affected node
     return node;
@@ -1013,8 +1020,9 @@ var Baobab = (function (_Emitter) {
     if (!this._transaction.length) return this;
 
     // Clearing timeout if one was defined
-    if (this._future) this._future = clearTimeout(this._future);
-
+    if (this._future) {
+      if (this.unschedule) this._future = this.unschedule(this._future);else this._future = clearTimeout(this._future);
+    }
     var affectedPaths = Object.keys(this._affectedPathsIndex).map(function (h) {
       return h !== 'λ' ? h.split('λ').slice(1) : [];
     });
