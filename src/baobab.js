@@ -22,7 +22,7 @@ const {
   deepMerge,
   shallowClone,
   shallowMerge,
-  uniqid
+  hashPath
 } = helpers;
 
 /**
@@ -42,6 +42,9 @@ const DEFAULTS = {
   // Should the monkeys be lazy?
   lazyMonkeys: true,
 
+  // Should we evaluate monkeys?
+  monkeyBusiness: true,
+
   // Should the tree be persistent?
   persistent: true,
 
@@ -55,21 +58,6 @@ const DEFAULTS = {
   validationBehavior: 'rollback'
 };
 
-/**
- * Function returning a string hash from a non-dynamic path expressed as an
- * array.
- *
- * @param  {array}  path - The path to hash.
- * @return {string} string - The resultant hash.
- */
-function hashPath(path) {
-  return 'λ' + path.map(step => {
-    if (type.function(step) || type.object(step))
-      return `#${uniqid()}#`;
-
-    return step;
-  }).join('λ');
-}
 
 /**
  * Baobab class
@@ -86,7 +74,7 @@ function hashPath(path) {
  * @param {function}     [opts.validate]     - Validation function.
  * @param {string}       [opts.validationBehaviour] - "rollback" or "notify".
  */
-export default class Baobab extends Emitter {
+class Baobab extends Emitter {
   constructor(initialData, opts) {
     super();
 
@@ -154,7 +142,9 @@ export default class Baobab extends Emitter {
     ].forEach(bootstrap);
 
     // Registering the initial monkeys
-    this._refreshMonkeys();
+    if (this.options.monkeyBusiness) {
+      this._refreshMonkeys();
+    }
 
     // Initial validation
     const validationError = this.validate();
@@ -423,7 +413,9 @@ export default class Baobab extends Emitter {
     this._transaction.push(shallowMerge({}, operation, {path: affectedPath}));
 
     // Updating the monkeys
-    this._refreshMonkeys(node, solvedPath, operation.type);
+    if (this.options.monkeyBusiness) {
+      this._refreshMonkeys(node, solvedPath, operation.type);
+    }
 
     // Emitting a `write` event
     this.emit('write', {path: affectedPath});
@@ -586,16 +578,21 @@ Baobab.monkey = function(...args) {
 };
 Baobab.dynamicNode = Baobab.monkey;
 
+export const monkey = Baobab.monkey;
+export const dynamic = Baobab.dynamic;
+
 /**
  * Exposing some internals for convenience
  */
-Baobab.Cursor = Cursor;
-Baobab.MonkeyDefinition = MonkeyDefinition;
-Baobab.Monkey = Monkey;
-Baobab.type = type;
-Baobab.helpers = helpers;
+export {Cursor, MonkeyDefinition, Monkey, type, helpers};
 
 /**
- * Version
+ * Version.
  */
-Baobab.VERSION = '2.4.3';
+Baobab.VERSION = '2.6.0';
+export const VERSION = Baobab.VERSION;
+
+/**
+ * Exporting.
+ */
+export default Baobab;

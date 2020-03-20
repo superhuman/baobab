@@ -1,5 +1,25 @@
 # Changelog
 
+## v2.6.0
+
+* Adding TypeScript declaration files.
+
+## v2.5.3
+
+* Refreshing the library's build to fix `babel` issues when consuming the library.
+
+## v2.5.2
+
+* Fixing the library's export.
+
+## v2.5.1
+
+* Fixing issue related to monkey not firing the correct events ([@roark](https://github.com/roark)).
+
+## v2.5.0
+
+* Adding the `monkeyBusiness` option ([@Tuhis](https://github.com/Tuhis)).
+
 ## v2.4.3
 
 * Better `tree/cursor.splice` ([@jrust](https://github.com/jrust)).

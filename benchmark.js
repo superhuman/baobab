@@ -1,5 +1,5 @@
 var Benchmark = require('benchmark'),
-    Baobab = require('./');
+    Baobab = require('./src/baobab.js');
 
 var suite = new Benchmark.Suite();
 

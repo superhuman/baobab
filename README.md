@@ -2,13 +2,13 @@
 
 # Baobab
 
-**Baobab** is a JavaScript [persistent](http://en.wikipedia.org/wiki/Persistent_data_structure) and [immutable](http://en.wikipedia.org/wiki/Immutable_object) (at least by default) data tree supporting cursors and enabling developers to easily navigate and monitor nested data through events.
+**Baobab** is a JavaScript & TypeScript [persistent](http://en.wikipedia.org/wiki/Persistent_data_structure) and [immutable](http://en.wikipedia.org/wiki/Immutable_object) (at least by default) data tree supporting cursors and enabling developers to easily navigate and monitor nested data through events.
 
 It is mainly inspired by functional [zippers](http://clojuredocs.org/clojure.zip/zipper) (such as Clojure's ones) and by [Om](https://github.com/swannodette/om)'s cursors.
 
 It aims at providing a centralized model holding an application's state and can be paired with **React** easily through mixins, higher order components, wrapper components or decorators (available [there](https://github.com/Yomguithereal/baobab-react)).
 
-**Fun fact**: A [Baobab](http://en.wikipedia.org/wiki/Adansonia_digitata), or *Adansonia digitata*, is a very big and magnificient African tree.
+**Fun fact**: A [Baobab](http://en.wikipedia.org/wiki/Adansonia_digitata), or *Adansonia digitata*, is a very big and magnificent African tree.
 
 ## Summary
 
@@ -77,6 +77,8 @@ npm install git+https://github.com/Yomguithereal/baobab.git
 ```
 
 If you want to use it in the browser, just include the minified script located [here](https://raw.githubusercontent.com/Yomguithereal/baobab/master/build/baobab.min.js).
+
+Note that the library comes along with its own declaration files so you can use it comfortably with TypeScript also.
 
 ```html
 <script src="baobab.min.js"></script>
@@ -309,7 +311,7 @@ The `splice` implementation of Baobab instead throws an error, if the given `del
 // Splicing the list
 var newList = cursor.splice([1, 1]);
 
-// Omitting the deleteCount argument makes splice delete no elements. 
+// Omitting the deleteCount argument makes splice delete no elements.
 var newList = cursor.splice([1]);
 
 // Inserting an item etc.
@@ -559,7 +561,7 @@ For convenience, **Baobab** allows you to store computed data within the tree.
 
 It does so by letting you create "monkeys" that you should really consider as dynamic nodes within your tree (*v1 users*: "monkeys" are merely the evolution of "facets").
 
-As such, while monkeys represent reduction of the current state (a filtered list used by multiple component throughout your app, for instance), they do have a physical existence within the tree.
+As such, while monkeys represent reduction of the current state (a filtered list used by multiple components throughout your app, for instance), they do have a physical existence within the tree.
 
 This means that you can add / modify / move / remove monkeys from the tree at runtime and place them wherever you want.
 
@@ -728,6 +730,7 @@ tree.set(['data', 'fromJack'], monkey({
 * The dynamic nodes are lazy and won't actually be computed before you get them (plus they will only compute once before they need to change, so if you get the same dynamic node twice, the computation won't rerun).
 * There are cases where it is clearly overkill to rely on a dynamic node. For instance, if only a single component of your app needs to access a computed version of the central state, then compute this version into the rendering logic of said component for simplicity's sake (a React component's render function for instance). Dynamic nodes are somewhat part of an optimization scheme.
 * Know that the `tree/cursor.serialize` method exists would you need to retrieve data stripped of dynamic nodes from your tree.
+* For the time being, placing monkeys beneath array nodes is not allowed for performance reasons.
 
 #### Specialized getters
 
@@ -938,6 +941,7 @@ var baobab = new Baobab(
 * **asynchronous** *boolean* [`true`]: should the tree delay the update to the next frame or fire them synchronously?
 * **immutable** *boolean* [`true`]: should the tree's data be immutable? Note that immutability is performed through `Object.freeze` and should be disabled in production for performance reasons.
 * **lazyMonkeys** *boolean* [`true`]: should the monkeys be lazy? Disable this option for easier debugging in your console (getter functions are sometimes hard to read in the console).
+* **monkeyBusiness** *boolean* [`true`]: should the tree support monkeys? Disabling this yields significant performance boost for large trees without monkeys.
 * **persistent** *boolean* [`true`]: should the tree be persistent. Know that disabling this option, while bringing a significant performance boost on heavy data, will make you lose the benefits of your tree's history and `O(1)` comparisons of objects.
 * **pure** *boolean* [`true`]: by default, on `set` and `apply` operations, the tree will check if the given value and the target node are stricly equal. If they indeed are, the tree won't update.
 * **validate** *function*: a function in charge of validating the tree whenever it updates. See below for an example of such function.
@@ -1049,7 +1053,7 @@ Note also that releasing a tree will consequently and automatically release ever
 
 **User interfaces as pure functions**
 
-User interfacess should be, as far as possible, considered as pure functions. Baobab is just a way to provide the needed arguments, i.e. the data representing your app's state, to such a function.
+User interfaces should be, as far as possible, considered as pure functions. Baobab is just a way to provide the needed arguments, i.e. the data representing your app's state, to such a function.
 
 Considering your UIs like pure functions comes along with collateral advantages like easy undo/redo features, state storing (just save your tree in the `localStorage` and here you go) and easy usage in both client & server.
 

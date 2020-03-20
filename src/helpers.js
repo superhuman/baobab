@@ -1,5 +1,5 @@
 /* eslint eqeqeq: 0 */
-
+/* eslint no-use-before-define: 0 */
 /**
  * Baobab Helpers
  * ===============
@@ -8,11 +8,6 @@
  */
 import {Monkey, MonkeyDefinition} from './monkey';
 import type from './type';
-
-/**
- * Noop function
- */
-const noop = Function.prototype;
 
 const hasOwnProp = {}.hasOwnProperty;
 
@@ -181,13 +176,10 @@ function cloner(deep, item) {
   // Array
   if (type.array(item)) {
     if (deep) {
-      const a = [];
+      const a = new Array(item.length);
 
-      let i,
-          l;
-
-      for (i = 0, l = item.length; i < l; i++)
-        a.push(cloner(true, item[i]));
+      for (let i = 0, l = item.length; i < l; i++)
+        a[i] = cloner(true, item[i]);
       return a;
     }
 
@@ -206,23 +198,27 @@ function cloner(deep, item) {
   if (type.object(item)) {
     const o = {};
 
-    let i, l, k;
-
     // NOTE: could be possible to erase computed properties through `null`.
     const props = Object.getOwnPropertyNames(item);
-    for (i = 0, l = props.length; i < l; i++) {
-      k = props[i];
-      if (type.lazyGetter(item, k)) {
-        Object.defineProperty(o, k, {
-          get: Object.getOwnPropertyDescriptor(item, k).get,
-          enumerable: true,
-          configurable: true
-        });
+    for (let i = 0, l = props.length; i < l; i++) {
+      const name = props[i];
+      const k = Object.getOwnPropertyDescriptor(item, name);
+      if (k.enumerable === true) {
+        if (k.get && k.get.isLazyGetter) {
+          Object.defineProperty(o, name, {
+            get: k.get,
+            enumerable: true,
+            configurable: true
+          });
+        }
+        else {
+          o[name] = deep ? cloner(true, item[name]) : item[name];
+        }
       }
-      else {
-        Object.defineProperty(o, k, {
-          value: deep ? cloner(true, item[k]) : item[k],
-          enumerable: Object.getOwnPropertyDescriptor(item, k).enumerable,
+      else if (k.enumerable === false) {
+        Object.defineProperty(o, name, {
+          value: deep ? cloner(true, k.value) : k.value,
+          enumerable: false,
           writable: true,
           configurable: true
         });
@@ -312,7 +308,7 @@ function freezer(deep, o) {
         l;
 
     for (i = 0, l = o.length; i < l; i++)
-      freezer(true, o[i]);
+      deepFreeze(o[i]);
   }
   else {
     let p,
@@ -330,20 +326,13 @@ function freezer(deep, o) {
           Object.isFrozen(p))
         continue;
 
-      freezer(true, p);
+      deepFreeze(p);
     }
   }
 }
 
-/**
- * Exporting both `freeze` and `deepFreeze` functions.
- * Note that if the engine does not support `Object.freeze` then this will
- * export noop functions instead.
- */
-const isFreezeSupported = (typeof Object.freeze === 'function');
-
-const freeze = isFreezeSupported ? freezer.bind(null, false) : noop,
-      deepFreeze = isFreezeSupported ? freezer.bind(null, true) : noop;
+const freeze = freezer.bind(null, false),
+      deepFreeze = freezer.bind(null, true);
 
 export {freeze, deepFreeze};
 
@@ -474,6 +463,22 @@ const shallowMerge = merger.bind(null, false),
       deepMerge = merger.bind(null, true);
 
 export {shallowMerge, deepMerge};
+
+/**
+ * Function returning a string hash from a non-dynamic path expressed as an
+ * array.
+ *
+ * @param  {array}  path - The path to hash.
+ * @return {string} string - The resultant hash.
+ */
+export function hashPath(path) {
+  return 'λ' + path.map(step => {
+    if (type.function(step) || type.object(step))
+      return `#${uniqid()}#`;
+
+    return step;
+  }).join('λ');
+}
 
 /**
  * Solving a potentially relative path.
