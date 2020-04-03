@@ -663,9 +663,7 @@ var DEFAULTS = {
  * @param {string}       [opts.validationBehaviour] - "rollback" or "notify".
  */
 
-var Baobab =
-/*#__PURE__*/
-function (_Emitter) {
+var Baobab = /*#__PURE__*/function (_Emitter) {
   _inheritsLoose(Baobab, _Emitter);
 
   function Baobab(initialData, opts) {
@@ -969,9 +967,14 @@ function (_Emitter) {
     } // Updating asynchronously
 
 
-    if (!this._future) this._future = setTimeout(function () {
-      return _this3.commit();
-    }, 0); // Finally returning the affected node
+    if (!this._future) {
+      if (this.schedule) this._future = this.schedule(function () {
+        return _this3.commit();
+      });else this._future = setTimeout(function () {
+        return _this3.commit();
+      }, 0);
+    } // Finally returning the affected node
+
 
     return node;
   }
@@ -986,7 +989,10 @@ function (_Emitter) {
     // Do not fire update if the transaction is empty
     if (!this._transaction.length) return this; // Clearing timeout if one was defined
 
-    if (this._future) this._future = clearTimeout(this._future);
+    if (this._future) {
+      if (this.unschedule) this._future = this.unschedule(this._future);else this._future = clearTimeout(this._future);
+    }
+
     var affectedPaths = Object.keys(this._affectedPathsIndex).map(function (h) {
       return h !== 'λ' ? h.split('λ').slice(1) : [];
     }); // Is the tree still valid?
@@ -1160,9 +1166,7 @@ function checkPossibilityOfDynamicTraversal(method, solvedPath) {
  */
 
 
-var Cursor =
-/*#__PURE__*/
-function (_Emitter) {
+var Cursor = /*#__PURE__*/function (_Emitter) {
   _inheritsLoose(Cursor, _Emitter);
 
   function Cursor(tree, path, hash) {
@@ -1996,9 +2000,7 @@ function slice(array) {
  */
 
 
-var Archive =
-/*#__PURE__*/
-function () {
+var Archive = /*#__PURE__*/function () {
   function Archive(size) {
     this.size = size;
     this.records = [];
@@ -2593,9 +2595,7 @@ var MonkeyDefinition = function MonkeyDefinition(definition) {
 
 exports.MonkeyDefinition = MonkeyDefinition;
 
-var Monkey =
-/*#__PURE__*/
-function () {
+var Monkey = /*#__PURE__*/function () {
   function Monkey(tree, pathInTree, definition) {
     var _this2 = this;
 
@@ -3263,9 +3263,7 @@ function _inheritsLoose(subClass, superClass) { subClass.prototype = Object.crea
  * @param {Baobab} tree     - The watched tree.
  * @param {object} mapping  - A mapping of the paths to watch in the tree.
  */
-var Watcher =
-/*#__PURE__*/
-function (_Emitter) {
+var Watcher = /*#__PURE__*/function (_Emitter) {
   _inheritsLoose(Watcher, _Emitter);
 
   function Watcher(tree, mapping) {

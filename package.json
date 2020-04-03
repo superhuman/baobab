@@ -1,5 +1,5 @@
 {
-  "name": "baobab",
+  "name": "@superhuman/baobab",
   "version": "2.6.0",
   "description": "JavaScript persistent data tree with cursors.",
   "main": "./dist/baobab.js",

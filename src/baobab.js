@@ -431,8 +431,12 @@ class Baobab extends Emitter {
     }
 
     // Updating asynchronously
-    if (!this._future)
-      this._future = setTimeout(() => this.commit(), 0);
+    if (!this._future) {
+      if (this.schedule)
+        this._future = this.schedule(() => this.commit());
+      else
+        this._future = setTimeout(() => this.commit(), 0);
+    }
 
     // Finally returning the affected node
     return node;
@@ -450,9 +454,12 @@ class Baobab extends Emitter {
       return this;
 
     // Clearing timeout if one was defined
-    if (this._future)
-      this._future = clearTimeout(this._future);
-
+    if (this._future) {
+      if (this.unschedule)
+        this._future = this.unschedule(this._future);
+      else
+        this._future = clearTimeout(this._future);
+    }
     const affectedPaths = Object.keys(this._affectedPathsIndex).map(h => {
       return h !== 'λ' ?
         h.split('λ').slice(1) :
